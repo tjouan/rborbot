@@ -1,0 +1,116 @@
+#!/usr/bin/env ruby
+
+require 'forwardable'
+require 'pry'
+require 'xmpp4r'
+require 'xmpp4r/client'
+require 'xmpp4r/muc'
+require 'xmpp4r/roster'
+
+
+$stdout.sync = true
+
+JID     = ARGV.shift
+PASS    = File.read(ARGV.shift).chomp
+LOGGER  = Logger.new($stdout).tap do |o|
+  #o.level     = Logger::DEBUG
+  o.level     = Logger::INFO
+  o.formatter = proc do |severity, datetime, progname, message|
+    "%s.%03i %s: %s\n" % [
+      datetime.strftime('%FT%T'),
+      datetime.usec / 1000,
+      severity[0..0],
+      message
+    ]
+  end
+end
+
+
+def log message
+  print "\e[1G"
+  LOGGER.info message
+  Readline.refresh_line
+end
+
+
+class Client
+  extend Forwardable
+  def_delegators  :@client, :connect, :auth
+  def_delegator   :@client, :close, :disconnect
+  def_delegator   :@client, :send, :xsend
+
+  def initialize jid
+    @client = Jabber::Client.new(jid)
+    setup_callbacks
+  end
+
+  def roster
+    Jabber::Roster::Helper.new(@client)
+  end
+
+  def join channel
+    muc = Jabber::MUC::SimpleMUCClient.new(@client)
+    muc.on_message do |time, nick, text|
+      log "#{channel} <#{nick}> #{text.inspect}"
+    end
+    muc.join Jabber::JID.new(channel)
+    :ok
+  end
+
+
+  private
+
+  def setup_callbacks
+    @client.add_message_callback do |message|
+      log "<%s> #{message.inspect}" % [
+        message.respond_to?(:from) ? message.from : '?'
+      ]
+    end
+  end
+end
+
+class Interactor
+  extend Forwardable
+  def_delegators :@client, :connect, :register_info, :auth, :roster, :join
+
+  def initialize jid
+    @client = Client.new(jid)
+  end
+
+  def run
+    binding.pry
+    terminate
+  end
+
+  def terminate
+    @client.disconnect
+  end
+
+  def register
+    puts 'password:'
+    password = $stdin.gets.chomp
+    @client.register password
+  end
+
+  def chpass
+    puts 'password:'
+    password = $stdin.gets.chomp
+    @client.password = password
+  end
+
+  def presence p = :available
+    @client.xsend Jabber::Presence.new.set_type p
+  end
+
+  def msg recipient, body
+    @client.xsend Jabber::Message.new(recipient, body)
+  end
+end
+
+
+#Jabber.debug = true
+
+i = Interactor.new(JID)
+i.connect
+i.auth PASS
+i.run
