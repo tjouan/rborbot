@@ -44,8 +44,13 @@ class Client
     setup_callbacks
   end
 
-  def presence p = :available
-    @client.send Jabber::Presence.new.set_type p
+  def presence type = :available
+    @client.send Jabber::Presence.new.set_type type
+    :ok
+  end
+
+  def presence_subscribe jid
+    @client.send Jabber::Presence.new.set_type(:subscribe).set_to(jid)
     :ok
   end
 
@@ -121,6 +126,7 @@ class Interactor
   def_delegators :@client, :connect, :register_info, :auth,
     :presence, :roster,
     :msg, :join
+  def_delegator :@client, :presence_subscribe, :subscribe
 
   def initialize jid
     @client = Client.new(jid)
