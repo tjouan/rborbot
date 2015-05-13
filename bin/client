@@ -51,7 +51,7 @@ class Client
   def join channel
     muc = Jabber::MUC::SimpleMUCClient.new(@client)
     muc.on_message do |time, nick, text|
-      log "#{channel} <#{nick}> #{text.inspect}"
+      log "[#{channel}] <#{nick}> #{text.inspect}"
     end
     muc.join Jabber::JID.new(channel)
     :ok
@@ -62,9 +62,17 @@ class Client
 
   def setup_callbacks
     @client.add_message_callback do |message|
-      log "<%s> #{message.inspect}" % [
-        message.respond_to?(:from) ? message.from : '?'
-      ]
+      $__ = message
+      case message.type
+      when :chat
+        log "<#{message.from}> #{message.body.inspect}"
+      else
+        log '%s <%s> %s' % [
+          message.type,
+          message.respond_to?(:from) ? message.from : '?',
+          message.body
+        ]
+      end
     end
   end
 end
