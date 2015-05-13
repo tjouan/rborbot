@@ -54,7 +54,7 @@ class Client
   end
 
   def msg recipient, body
-    @client.send Jabber::Message.new(recipient, body)
+    @client.send Jabber::Message.new(recipient, body).tap { |o| o.type = :chat }
     :ok
   end
 
