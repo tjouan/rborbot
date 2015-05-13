@@ -76,6 +76,9 @@ class Client
   private
 
   def setup_callbacks
+    @client.add_iq_callback do |iq|
+      log iq.inspect
+    end
     @client.add_message_callback do |message|
       $__ = message
       case message.type
