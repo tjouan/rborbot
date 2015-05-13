@@ -44,8 +44,18 @@ class Client
     setup_callbacks
   end
 
+  def presence p = :available
+    @client.send Jabber::Presence.new.set_type p
+    :ok
+  end
+
   def roster
     Jabber::Roster::Helper.new(@client)
+  end
+
+  def msg recipient, body
+    @client.send Jabber::Message.new(recipient, body)
+    :ok
   end
 
   def join channel
@@ -100,7 +110,9 @@ class Interactor
   end
 
   extend Forwardable
-  def_delegators :@client, :connect, :register_info, :auth, :roster, :join
+  def_delegators :@client, :connect, :register_info, :auth,
+    :presence, :roster,
+    :msg, :join
 
   def initialize jid
     @client = Client.new(jid)
@@ -120,14 +132,6 @@ class Interactor
     puts 'password:'
     password = $stdin.gets.chomp
     @client.password = password
-  end
-
-  def presence p = :available
-    @client.xsend Jabber::Presence.new.set_type p
-  end
-
-  def msg recipient, body
-    @client.xsend Jabber::Message.new(recipient, body)
   end
 end
 
