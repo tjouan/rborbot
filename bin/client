@@ -78,6 +78,15 @@ class Interactor
   end
 
   def run
+    Pry.config.prompt = %w[> *].map.with_index do |char, i|
+      proc do |target_self, nest_level, pry|
+        if target_self == self
+          char + ' '
+        else
+          Pry::DEFAULT_PROMPT[i].call target_self, nest_level, pry
+        end
+      end
+    end
     binding.pry
     terminate
   end
