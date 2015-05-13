@@ -78,25 +78,32 @@ class Client
 end
 
 class Interactor
+  PRY_PROMPT = %w[> *].map.with_index do |char, i|
+    proc do |target_self, nest_level, pry|
+      case target_self
+      when self
+        char + ' '
+      else
+        Pry::DEFAULT_PROMPT[i].call target_self, nest_level, pry
+      end
+    end
+  end
+
+  class << self
+    def run_authenticated jid, password = nil
+      i = new jid
+      i.connect
+      i.auth password if password
+      Pry.start i, prompt: PRY_PROMPT
+      i.terminate
+    end
+  end
+
   extend Forwardable
   def_delegators :@client, :connect, :register_info, :auth, :roster, :join
 
   def initialize jid
     @client = Client.new(jid)
-  end
-
-  def run
-    Pry.config.prompt = %w[> *].map.with_index do |char, i|
-      proc do |target_self, nest_level, pry|
-        if target_self == self
-          char + ' '
-        else
-          Pry::DEFAULT_PROMPT[i].call target_self, nest_level, pry
-        end
-      end
-    end
-    binding.pry
-    terminate
   end
 
   def terminate
@@ -126,8 +133,4 @@ end
 
 
 #Jabber.debug = true
-
-i = Interactor.new(JID)
-i.connect
-i.auth PASS
-i.run
+Interactor.run_authenticated(JID, PASS)
