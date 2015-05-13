@@ -88,6 +88,14 @@ class Client
 end
 
 class Interactor
+  PRY_PRINT = proc do |output, value, _pry_|
+    next if value == :ok
+    _pry_.pager.open do |pager|
+      pager.print _pry_.config.output_prefix
+      Pry::ColorPrinter.pp(value, pager, Pry::Terminal.width! - 1)
+    end
+  end
+
   PRY_PROMPT = %w[> *].map.with_index do |char, i|
     proc do |target_self, nest_level, pry|
       case target_self
@@ -104,7 +112,7 @@ class Interactor
       i = new jid
       i.connect
       i.auth password if password
-      Pry.start i, prompt: PRY_PROMPT
+      Pry.start i, print: PRY_PRINT, prompt: PRY_PROMPT
       i.terminate
     end
   end
