@@ -35,13 +35,18 @@ end
 
 class Client
   extend Forwardable
-  def_delegators  :@client, :connect, :auth
+  def_delegators  :@client, :connect
   def_delegator   :@client, :close, :disconnect
   def_delegator   :@client, :send, :xsend
 
   def initialize jid
     @client = Jabber::Client.new(jid)
     setup_callbacks
+  end
+
+  def auth password
+    @client.auth password
+    setup_roster_callbacks
   end
 
   def presence type = :available
@@ -80,7 +85,6 @@ class Client
       log iq.inspect
     end
     @client.add_message_callback do |message|
-      $__ = message
       case message.type
       when :chat
         log "<#{message.from}> #{message.body.inspect}"
@@ -91,6 +95,34 @@ class Client
           message.body
         ]
       end
+    end
+  end
+
+  def setup_roster_callbacks
+    roster = Jabber::Roster::Helper.new(@client)
+    roster.add_update_callback do |olditem, item|
+      log "ROSTER UPDATE: #{olditem.inspect} -> #{item.inspect}"
+    end
+    roster.add_presence_callback do |item, oldpresence, presence|
+      log "PRESENCE UPDATE: #{item} / #{oldpresence.inspect} -> #{presence.inspect}"
+    end
+    roster.add_subscription_callback do |item, presence|
+      log "SUBSCRIPTION: #{item.inspect} / #{presence.inspect}"
+    end
+    roster.add_subscription_request_callback do |item, presence|
+      log "SUBSCRIPTION REQUEST: #{item.inspect} / #{presence.inspect}"
+      log "*#{presence.from}* requests subscribe to us"
+      roster.accept_subscription presence.from
+      msg presence.from, <<-eoh
+Hello #{presence.from},
+
+  I'm allowing you to subscribe to my presence, as you requested.
+
+regards,
+
+rborbot the bot
+eoh
+      presence_subscribe presence.from
     end
   end
 end
@@ -120,6 +152,7 @@ class Interactor
       i = new jid
       i.connect
       i.auth password if password
+      i.presence
       Pry.start i, print: PRY_PRINT, prompt: PRY_PROMPT
       i.terminate
     end
