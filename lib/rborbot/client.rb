@@ -5,6 +5,8 @@ module Rborbot
     def_delegator   :@client, :close, :disconnect
     def_delegator   :@client, :send, :xsend
 
+    attr_reader :roster
+
     def initialize env
       @env, @client = env, Jabber::Client.new(env.jid)
       setup_callbacks
@@ -23,10 +25,6 @@ module Rborbot
     def presence_subscribe jid
       @client.send Jabber::Presence.new.set_type(:subscribe).set_to(jid)
       :ok
-    end
-
-    def roster
-      Jabber::Roster::Helper.new(@client)
     end
 
     def msg recipient, body
@@ -65,17 +63,17 @@ module Rborbot
     end
 
     def setup_roster_callbacks
-      roster = Jabber::Roster::Helper.new(@client)
-      roster.add_update_callback do |olditem, item|
+      @roster = Jabber::Roster::Helper.new(@client)
+      @roster.add_update_callback do |olditem, item|
         @env.log "ROSTER UPDATE: #{olditem.inspect} -> #{item.inspect}"
       end
-      roster.add_presence_callback do |item, oldpresence, presence|
-        @env.log "PRESENCE UPDATE: #{item} / #{oldpresence.inspect} -> #{presence.inspect}"
+      @roster.add_presence_callback do |item, oldpresence, presence|
+        @env.log "*#{presence.from}* is now available"
       end
-      roster.add_subscription_callback do |item, presence|
+      @roster.add_subscription_callback do |item, presence|
         @env.log "SUBSCRIPTION: #{item.inspect} / #{presence.inspect}"
       end
-      roster.add_subscription_request_callback do |item, presence|
+      @roster.add_subscription_request_callback do |item, presence|
         @env.log "SUBSCRIPTION REQUEST: #{item.inspect} / #{presence.inspect}"
         @env.log "*#{presence.from}* requests subscribe to us"
         roster.accept_subscription presence.from
