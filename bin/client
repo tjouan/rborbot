@@ -45,7 +45,7 @@ class Client
   end
 
   def presence type = :available
-    @client.send Jabber::Presence.new.set_type type
+    @client.send Jabber::Presence.new.set_type(type).set_status('rborboting')
     :ok
   end
 
