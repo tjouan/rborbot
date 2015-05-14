@@ -64,9 +64,6 @@ module Rborbot
 
     def setup_roster_callbacks
       @roster = Jabber::Roster::Helper.new(@client)
-      @roster.add_update_callback do |olditem, item|
-        @env.log "ROSTER UPDATE: #{olditem.inspect} -> #{item.inspect}"
-      end
       @roster.add_presence_callback do |item, oldpresence, presence|
         @env.log "*#{presence.from}* is now available"
       end
