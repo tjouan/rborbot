@@ -23,15 +23,13 @@ module Rborbot
       def run_authenticated env
         i = new env
         i.connect
-        i.auth env.password if env.password
-        i.presence
         Pry.start i, print: PRY_PRINT, prompt: PRY_PROMPT
         i.terminate
       end
     end
 
     extend Forwardable
-    def_delegators :@client, :connect, :register_info, :auth,
+    def_delegators :@client, :register_info, :auth,
       :presence, :roster,
       :msg, :join
     def_delegator :@client, :presence_subscribe, :subscribe
@@ -42,8 +40,6 @@ module Rborbot
         case e
         when IOError
           @client.connect
-          @client.auth env.password if env.password
-          @client.presence
         else
           raise e
         end
@@ -54,6 +50,14 @@ module Rborbot
       @env.print "\e[1G"
       @env.log message
       Readline.refresh_line
+    end
+
+    def connect
+      @client.connect
+      if @env.password
+        @client.auth @env.password
+        @client.presence
+      end
     end
 
     def terminate
