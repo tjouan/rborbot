@@ -36,7 +36,7 @@ module Rborbot
     end
 
     def run
-      Interactor.run_authenticated(@env, *@arguments)
+      Interactor.run_authenticated(@env)
     end
 
 
