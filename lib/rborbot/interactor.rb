@@ -61,5 +61,9 @@ module Rborbot
       password = @env.gets.chomp
       @client.password = password
     end
+
+    def names
+      Hash[roster.items.map { |jid, item| [jid.to_s, item.subscription] }]
+    end
   end
 end
