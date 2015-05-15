@@ -37,10 +37,10 @@ module Rborbot
     def_delegator :@client, :presence_subscribe, :subscribe
 
     def initialize env
-      @env, @client = env, Client.new(env)
+      @env, @client = env, Client.new(env.jid, method(:log).to_proc)
     end
 
-    def log
+    def log message
       @env.print "\e[1G"
       @env.log message
       Readline.refresh_line

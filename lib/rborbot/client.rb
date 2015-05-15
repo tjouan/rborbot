@@ -7,8 +7,8 @@ module Rborbot
 
     attr_reader :roster
 
-    def initialize env
-      @env, @client = env, Jabber::Client.new(env.jid)
+    def initialize jid, log
+      @log, @client = log, Jabber::Client.new(jid)
       setup_callbacks
     end
 
@@ -35,7 +35,7 @@ module Rborbot
     def join channel
       muc = Jabber::MUC::SimpleMUCClient.new(@client)
       muc.on_message do |time, nick, text|
-        @env.log "[#{channel}] <#{nick}> #{text.inspect}"
+        @log["[#{channel}] <#{nick}> #{text.inspect}"]
       end
       muc.join Jabber::JID.new(channel)
       :ok
@@ -46,18 +46,18 @@ module Rborbot
 
     def setup_callbacks
       @client.add_iq_callback do |iq|
-        @env.log iq.inspect
+        @log[iq.inspect]
       end
       @client.add_message_callback do |message|
         case message.type
         when :chat
-          @env.log "<#{message.from}> #{message.body.inspect}"
+          @log["<#{message.from}> #{message.body.inspect}"]
         else
-          @env.log '%s <%s> %s' % [
+          @log['%s <%s> %s' % [
             message.type,
             message.respond_to?(:from) ? message.from : '?',
             message.body
-          ]
+          ]]
         end
       end
     end
@@ -67,22 +67,22 @@ module Rborbot
       @roster.add_presence_callback do |item, oldpresence, presence|
         case presence.type
         when :unavailable
-          @env.log "*#{presence.from}* is now unavailable"
+          @log["*#{presence.from}* is now unavailable"]
         else
-          @env.log "*#{presence.from}* is now available"
+          @log["*#{presence.from}* is now available"]
         end
       end
       @roster.add_subscription_callback do |item, presence|
         case presence.type
         when :subscribed
-          @env.log "*#{presence.from}* has subscribed to us"
+          @log["*#{presence.from}* has subscribed to us"]
         else
-          @env.log "SUBSCRIPTION: #{item.inspect} / #{presence.inspect}"
+          @log["SUBSCRIPTION: #{item.inspect} / #{presence.inspect}"]
         end
       end
       @roster.add_subscription_request_callback do |item, presence|
-        @env.log "SUBSCRIPTION REQUEST: #{item.inspect} / #{presence.inspect}"
-        @env.log "*#{presence.from}* requests subscribe to us"
+        @log["SUBSCRIPTION REQUEST: #{item.inspect} / #{presence.inspect}"]
+        @log["*#{presence.from}* requests subscribe to us"]
         roster.accept_subscription presence.from
         msg presence.from, <<-eoh
 Hello #{presence.from},
