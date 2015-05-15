@@ -44,6 +44,8 @@ module Rborbot
           @client.connect
           @client.auth env.password if env.password
           @client.presence
+        else
+          raise e
         end
       end
     end
