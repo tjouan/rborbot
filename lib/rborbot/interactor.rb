@@ -38,6 +38,14 @@ module Rborbot
 
     def initialize env
       @env, @client = env, Client.new(env.jid, method(:log).to_proc)
+      @client.on_exception do |e|
+        case e
+        when IOError
+          @client.connect
+          @client.auth env.password if env.password
+          @client.presence
+        end
+      end
     end
 
     def log message

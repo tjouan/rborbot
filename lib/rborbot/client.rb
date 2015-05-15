@@ -1,7 +1,7 @@
 module Rborbot
   class Client
     extend Forwardable
-    def_delegators  :@client, :connect
+    def_delegators  :@client, :connect, :on_exception
     def_delegator   :@client, :close, :disconnect
     def_delegator   :@client, :send, :xsend
 
