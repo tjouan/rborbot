@@ -32,13 +32,16 @@ module Rborbot
     def_delegators :@client, :register_info, :auth
 
     def initialize env
-      @env, @client = env, Client.new(env.jid, method(:log).to_proc)
-      @client.on_exception do |e|
-        case e
-        when IOError
-          @client.connect
-        else
-          raise e
+      @env      = env
+      @channels = []
+      @client   = Client.new(env.jid, method(:log).to_proc).tap do |c|
+        c.on_exception do |e|
+          case e
+          when IOError
+            @client.connect
+          else
+            raise e
+          end
         end
       end
     end
@@ -89,7 +92,7 @@ module Rborbot
     end
 
     def join channel
-      @client.muc_join channel
+      @channels << @client.muc_client_for(channel).tap { |o| o.join channel }
       :ok
     end
 

@@ -8,6 +8,7 @@ require 'xmpp4r/roster'
 
 require 'rborbot/cli'
 require 'rborbot/client'
+require 'rborbot/client/muc'
 require 'rborbot/env'
 require 'rborbot/interactor'
 require 'rborbot/version'

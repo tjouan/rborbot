@@ -4,7 +4,7 @@ module Rborbot
     def_delegators  :@client, :connect, :on_exception, :register, :register_info
     def_delegator   :@client, :close, :disconnect
 
-    attr_reader :roster
+    attr_reader :client, :log, :roster
 
     def initialize jid, log
       @log, @client = log, Jabber::Client.new(jid)
@@ -26,6 +26,10 @@ module Rborbot
 
     def message_chat recipient, body
       @client.send Jabber::Message.new(recipient, body).tap { |o| o.type = :chat }
+    end
+
+    def muc_client_for channel
+      MUC.new(self)
     end
 
     def muc_join channel
