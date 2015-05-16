@@ -29,7 +29,7 @@ module Rborbot
     end
 
     extend Forwardable
-    def_delegators :@client, :register_info, :auth, :roster
+    def_delegators :@client, :register_info, :auth
 
     def initialize env
       @env, @client = env, Client.new(env.jid, method(:log).to_proc)
@@ -93,7 +93,7 @@ module Rborbot
       :ok
     end
 
-    def names
+    def roster
       Hash[roster.items.map { |jid, item| [jid.to_s, item.subscription] }]
     end
   end
