@@ -76,6 +76,8 @@ module Rborbot
         case presence.type
         when :subscribed
           @log["*#{presence.from}* has subscribed to us"]
+        when :unsubscribe
+          @log["*#{presence.from}* has unsubscribed to us"]
         else
           @log["SUBSCRIPTION: #{item.inspect} / #{presence.inspect}"]
         end
