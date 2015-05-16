@@ -20,7 +20,7 @@ module Rborbot
     end
 
     class << self
-      def run_authenticated env
+      def run env
         i = new env
         i.connect
         Pry.start i, print: PRY_PRINT, prompt: PRY_PROMPT
