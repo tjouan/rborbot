@@ -29,10 +29,7 @@ module Rborbot
     end
 
     extend Forwardable
-    def_delegators :@client, :register_info, :auth,
-      :presence, :roster,
-      :msg, :join
-    def_delegator :@client, :presence_subscribe, :subscribe
+    def_delegators :@client, :register_info, :auth, :roster
 
     def initialize env
       @env, @client = env, Client.new(env.jid, method(:log).to_proc)
@@ -56,7 +53,7 @@ module Rborbot
       @client.connect
       if @env.password
         @client.auth @env.password
-        @client.presence
+        presence
       end
     end
 
@@ -74,6 +71,26 @@ module Rborbot
       @env.puts 'password:'
       password = @env.gets.chomp
       @client.password = password
+    end
+
+    def presence type = :available, status = PRESENCE_STATUS
+      @client.presence type, status
+      :ok
+    end
+
+    def subscribe jid
+      @client.presence_subscribe jid
+      :ok
+    end
+
+    def msg recipient, body
+      @client.message_chat recipient, body
+      :ok
+    end
+
+    def join channel
+      @client.muc_join channel
+      :ok
     end
 
     def names

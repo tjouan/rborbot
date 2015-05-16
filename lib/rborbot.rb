@@ -15,4 +15,6 @@ require 'rborbot/version'
 module Rborbot
   Error         = Class.new(StandardError)
   RuntimeError  = Class.new(RuntimeError)
+
+  PRESENCE_STATUS = 'rborboting'.freeze
 end

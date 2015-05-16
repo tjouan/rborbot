@@ -17,28 +17,24 @@ module Rborbot
       setup_roster_callbacks
     end
 
-    def presence type = :available
-      @client.send Jabber::Presence.new.set_type(type).set_status('rborboting')
-      :ok
+    def presence type, status
+      @client.send Jabber::Presence.new.set_type(type).set_status status
     end
 
     def presence_subscribe jid
       @client.send Jabber::Presence.new.set_type(:subscribe).set_to(jid)
-      :ok
     end
 
-    def msg recipient, body
+    def message_chat recipient, body
       @client.send Jabber::Message.new(recipient, body).tap { |o| o.type = :chat }
-      :ok
     end
 
-    def join channel
+    def muc_join channel
       muc = Jabber::MUC::SimpleMUCClient.new(@client)
       muc.on_message do |time, nick, text|
         @log["[#{channel}] <#{nick}> #{text.inspect}"]
       end
       muc.join Jabber::JID.new(channel)
-      :ok
     end
 
 
