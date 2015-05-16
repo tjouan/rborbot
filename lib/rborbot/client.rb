@@ -59,12 +59,17 @@ module Rborbot
 
     def setup_roster_callbacks
       @roster = Jabber::Roster::Helper.new(@client)
-      @roster.add_presence_callback do |item, oldpresence, presence|
-        case presence.type
-        when :unavailable
-          @log["*#{presence.from}* is now unavailable"]
-        else
-          @log["*#{presence.from}* is now available"]
+      @roster.add_presence_callback do |item, oldpres, pres|
+        oldpres = Jabber::Presence.new unless oldpres
+        pres = Jabber::Presence.new unless pres
+        jid = pres.from || oldpres.from
+        log_msg = proc do |attr, a, b|
+          "*#{jid}* #{attr} #{a.send(attr).inspect} -> #{b.send(attr).inspect}"
+        end
+        %i[type show status priority].each do |attr|
+          if oldpres.send(attr) != pres.send(attr)
+            @log[log_msg[attr, oldpres, pres]]
+          end
         end
       end
       @roster.add_subscription_callback do |item, presence|
