@@ -71,7 +71,7 @@ module Rborbot
     end
 
     def chpass
-      puts 'password:'
+      @env.puts 'password:'
       password = @env.gets.chomp
       @client.password = password
     end
