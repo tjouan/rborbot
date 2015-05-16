@@ -83,10 +83,11 @@ module Rborbot
         end
       end
       @roster.add_subscription_request_callback do |item, presence|
-        @log["SUBSCRIPTION REQUEST: #{item.inspect} / #{presence.inspect}"]
-        @log["*#{presence.from}* requests subscribe to us"]
-        roster.accept_subscription presence.from
-        msg presence.from, <<-eoh
+        case presence.type
+        when :subscribe
+          @log["*#{presence.from}* requests subscribe to us"]
+          roster.accept_subscription presence.from
+          message_chat presence.from, <<-eoh
 Hello #{presence.from},
 
   I'm allowing you to subscribe to my presence, as you requested.
@@ -95,7 +96,10 @@ regards,
 
 rborbot the bot
         eoh
-        presence_subscribe presence.from
+          presence_subscribe presence.from
+        else
+          @log["SUBSCRIPTION REQUEST: #{item.inspect} / #{presence.inspect}"]
+        end
       end
     end
   end
