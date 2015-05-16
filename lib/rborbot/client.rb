@@ -3,7 +3,6 @@ module Rborbot
     extend Forwardable
     def_delegators  :@client, :connect, :on_exception, :register, :register_info
     def_delegator   :@client, :close, :disconnect
-    def_delegator   :@client, :send, :xsend
 
     attr_reader :roster
 
