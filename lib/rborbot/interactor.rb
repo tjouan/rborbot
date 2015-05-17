@@ -97,7 +97,7 @@ module Rborbot
     end
 
     def roster
-      Hash[roster.items.map { |jid, item| [jid.to_s, item.subscription] }]
+      Hash[@client.roster.items.map { |jid, item| [jid.to_s, item.subscription] }]
     end
   end
 end
